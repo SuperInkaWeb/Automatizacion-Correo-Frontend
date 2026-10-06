@@ -1,6 +1,6 @@
 # Automatización de Correos — Frontend
 
-Interfaz de operación de la [plataforma de automatización de correos](https://github.com/Jeancmd989/automatizacion-correos-backend):
+Interfaz de operación de la [plataforma de automatización de correos](https://github.com/SuperInkaWeb/Automatizacion-Correo-Backend):
 vincular buzones, lanzar escaneos, seguir su progreso en vivo, revisar
 registros y descargar reportes.
 
@@ -12,7 +12,7 @@ registros y descargar reportes.
 ## Estado
 
 Implementadas las **fases 0 y 6**, y los tests E2E de la **fase 7**, del
-[plan de arquitectura](https://github.com/Jeancmd989/automatizacion-correos-backend/blob/main/ARQUITECTURA.md#17-plan-de-implementación-por-fases).
+[plan de arquitectura](https://github.com/SuperInkaWeb/Automatizacion-Correo-Backend/blob/main/ARQUITECTURA.md#17-plan-de-implementación-por-fases).
 
 | Pieza | Estado |
 |-------|--------|

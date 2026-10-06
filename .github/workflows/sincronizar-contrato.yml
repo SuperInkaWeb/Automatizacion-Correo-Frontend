@@ -37,7 +37,7 @@ permissions:
   pull-requests: write
 
 env:
-  URL_DEL_CONTRATO: https://raw.githubusercontent.com/Jeancmd989/automatizacion-correos-backend/main/openapi.json
+  URL_DEL_CONTRATO: https://raw.githubusercontent.com/SuperInkaWeb/Automatizacion-Correo-Backend/main/openapi.json
 
 jobs:
   sincronizar:
