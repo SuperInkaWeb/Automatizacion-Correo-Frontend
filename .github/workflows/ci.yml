@@ -75,10 +75,14 @@ jobs:
       - name: Dependencias de desarrollo
         run: npm audit --audit-level=critical
 
+      # gitleaks CLI por Docker, no la accion oficial: esta exige licencia
+      # (GITLEAKS_LICENSE) en repos de una organizacion. El CLI es libre y
+      # da la misma proteccion. `detect` recorre el historial (de ahi el
+      # fetch-depth: 0) y falla si encuentra un secreto.
       - name: Buscar secretos en el historial
-        uses: gitleaks/gitleaks-action@v2.3.9
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest \
+            detect --source=/repo --redact --verbose
 
   contrato:
     name: Contrato de API sincronizado

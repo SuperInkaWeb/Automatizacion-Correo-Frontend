@@ -1,0 +1,8 @@
+# Hallazgos historicos aceptados.
+#
+# SESSION_SECRET en el ci.yml del andamiaje de fase 0: era un valor de
+# relleno ("clave-de-integracion-continua-de-32-bytes"), nunca un secreto
+# real. El ci.yml actual lo genera al vuelo con `openssl rand`. Esta linea
+# acalla el hallazgo del commit historico sin reescribir el historial; el
+# valor no sirve para nada y no hay que rotar nada.
+6d2702a6f7af4ce602c4480f41f3a12bf3559a45:.github/workflows/ci.yml:generic-api-key:97
