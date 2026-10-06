@@ -34,7 +34,13 @@ jobs:
     name: Verificacion
     runs-on: ubuntu-latest
     steps:
+      # `fetch-depth: 0`: gitleaks escanea un rango de commits y el clon
+      # superficial por defecto no incluye el padre del rango, lo que hace
+      # que `git log` avise por stderr y gitleaks lo tome por un fallo de
+      # escaneo. Solo aparece cuando el push trae mas de un commit.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
