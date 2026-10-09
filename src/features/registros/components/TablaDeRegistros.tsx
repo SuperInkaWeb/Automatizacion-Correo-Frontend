@@ -11,6 +11,7 @@
 import { useState } from "react";
 import { useRegistrosListarRegistros } from "@/generated/api/registros/registros";
 import type { RegistroSalida } from "@/generated/model";
+import { useAbrirDocumento } from "../hooks/useAbrirDocumento";
 import {
   Boton,
   Cargando,
@@ -171,6 +172,7 @@ function FilaDeRegistro({ registro }: { registro: RegistroSalida }) {
     TONO_POR_COMPLETITUD[
       registro.completitud as keyof typeof TONO_POR_COMPLETITUD
     ];
+  const documento = useAbrirDocumento();
 
   return (
     <tr className="border-b border-[var(--color-borde)] last:border-0">
@@ -199,9 +201,17 @@ function FilaDeRegistro({ registro }: { registro: RegistroSalida }) {
       <Celda>
         {registro.adjunto_nombre || registro.correo_remitente ? (
           <div className="flex max-w-[16rem] flex-col">
-            <span className="truncate" title={registro.correo_asunto ?? undefined}>
-              {registro.adjunto_nombre ?? "—"}
-            </span>
+            <button
+              type="button"
+              onClick={() => void documento.abrir(registro.id)}
+              disabled={documento.cargando}
+              title={registro.correo_asunto ?? "Ver documento"}
+              className="truncate text-left text-[var(--color-acento)] underline-offset-2 hover:underline disabled:opacity-60"
+            >
+              {documento.error
+                ? "Reintentar"
+                : (registro.adjunto_nombre ?? "Ver documento")}
+            </button>
             {registro.correo_remitente && (
               <span className="truncate text-xs text-[var(--color-texto-tenue)]">
                 {registro.correo_remitente}

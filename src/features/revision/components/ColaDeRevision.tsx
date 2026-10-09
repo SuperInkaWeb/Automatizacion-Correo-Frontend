@@ -21,6 +21,7 @@ import {
   useRegistrosRechazarRegistro,
 } from "@/generated/api/registros/registros";
 import type { RegistroSalida } from "@/generated/model";
+import { useAbrirDocumento } from "@/features/registros/hooks/useAbrirDocumento";
 import {
   Boton,
   Cargando,
@@ -105,6 +106,7 @@ function FichaDeRevision({
   const corregir = useRegistrosCorregirRegistro();
   const aprobar = useRegistrosAprobarRegistro();
   const rechazar = useRegistrosRechazarRegistro();
+  const documento = useAbrirDocumento();
 
   const ocupado =
     corregir.isPending || aprobar.isPending || rechazar.isPending;
@@ -200,6 +202,14 @@ function FichaDeRevision({
         {error && <Fallo mensaje={mensajeDeError(error)} />}
 
         <div className="flex flex-wrap gap-2">
+          <Boton
+            type="button"
+            variante="secundario"
+            cargando={documento.cargando}
+            onClick={() => void documento.abrir(registro.id)}
+          >
+            {documento.error ? "Reintentar" : "Ver documento"}
+          </Boton>
           <Boton type="submit" cargando={ocupado}>
             {hayCambios ? "Guardar y aprobar" : "Aprobar sin cambios"}
           </Boton>

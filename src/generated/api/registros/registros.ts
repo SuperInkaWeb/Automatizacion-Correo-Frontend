@@ -30,6 +30,7 @@ import type {
   RegistrosColaDeRevisionParams,
   RegistrosListarRegistrosParams,
   RespuestaDictStrInt,
+  RespuestaDocumentoDeAdjuntoSalida,
   RespuestaExportacionSalida,
   RespuestaListRegistroSalida,
   RespuestaRegistroSalida,
@@ -434,7 +435,112 @@ export const useRegistrosAprobarRegistro = <TError = HTTPValidationError,
       > => {
       return useMutation(getRegistrosAprobarRegistroMutationOptions(options), queryClient);
     }
-    export const getRegistrosRechazarRegistroUrl = (registroId: string,) => {
+    export const getRegistrosVerDocumentoUrl = (registroId: string,) => {
+
+
+
+
+  return `/api/v1/records/${registroId}/document`
+}
+
+/**
+ * URL prefirmada de vida corta para ver el adjunto original.
+ *
+ * Se verifica primero que el registro es del tenant (y existe) antes de
+ * firmar nada: asi el identificador del adjunto no sirve para sondear
+ * documentos ajenos.
+ * @summary Ver Documento
+ */
+export const registrosVerDocumento = async (registroId: string, options?: Parameters<typeof peticionAlBff>[1]): Promise<RespuestaDocumentoDeAdjuntoSalida> => {
+
+  return peticionAlBff<RespuestaDocumentoDeAdjuntoSalida>(getRegistrosVerDocumentoUrl(registroId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getRegistrosVerDocumentoQueryKey = (registroId: string,) => {
+    return [
+    `/api/v1/records/${registroId}/document`
+    ] as const;
+    }
+
+
+export const getRegistrosVerDocumentoQueryOptions = <TData = Awaited<ReturnType<typeof registrosVerDocumento>>, TError = HTTPValidationError>(registroId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof registrosVerDocumento>>, TError, TData>>, request?: SecondParameter<typeof peticionAlBff>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getRegistrosVerDocumentoQueryKey(registroId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof registrosVerDocumento>>> = ({ signal }) => registrosVerDocumento(registroId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: registroId !== null && registroId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof registrosVerDocumento>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type RegistrosVerDocumentoQueryResult = NonNullable<Awaited<ReturnType<typeof registrosVerDocumento>>>
+export type RegistrosVerDocumentoQueryError = HTTPValidationError
+
+
+export function useRegistrosVerDocumento<TData = Awaited<ReturnType<typeof registrosVerDocumento>>, TError = HTTPValidationError>(
+ registroId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof registrosVerDocumento>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof registrosVerDocumento>>,
+          TError,
+          Awaited<ReturnType<typeof registrosVerDocumento>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof peticionAlBff>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRegistrosVerDocumento<TData = Awaited<ReturnType<typeof registrosVerDocumento>>, TError = HTTPValidationError>(
+ registroId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof registrosVerDocumento>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof registrosVerDocumento>>,
+          TError,
+          Awaited<ReturnType<typeof registrosVerDocumento>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof peticionAlBff>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useRegistrosVerDocumento<TData = Awaited<ReturnType<typeof registrosVerDocumento>>, TError = HTTPValidationError>(
+ registroId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof registrosVerDocumento>>, TError, TData>>, request?: SecondParameter<typeof peticionAlBff>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Ver Documento
+ */
+
+export function useRegistrosVerDocumento<TData = Awaited<ReturnType<typeof registrosVerDocumento>>, TError = HTTPValidationError>(
+ registroId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof registrosVerDocumento>>, TError, TData>>, request?: SecondParameter<typeof peticionAlBff>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getRegistrosVerDocumentoQueryOptions(registroId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getRegistrosRechazarRegistroUrl = (registroId: string,) => {
 
 
 
