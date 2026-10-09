@@ -13,9 +13,16 @@ import { ALCANCES, configuracionOidc, urlDeRetorno } from "@/shared/lib/oidc";
 import { entornoDeServidor } from "@/shared/config/entorno";
 import { leerSesion } from "@/shared/lib/sesion";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: Request): Promise<NextResponse> {
   const entorno = entornoDeServidor();
   const configuracion = await configuracionOidc();
+
+  // Auth0 mantiene su propia sesión SSO, que sobrevive al cierre local
+  // (ver logout). Con `?cambiar=1` se fuerza el formulario para entrar
+  // con otra cuenta; sin el parámetro, el login normal reutiliza la
+  // sesión y no obliga a reescribir credenciales cada vez.
+  const cambiarDeCuenta =
+    new URL(request.url).searchParams.get("cambiar") === "1";
 
   const codeVerifier = client.randomPKCECodeVerifier();
   const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);
@@ -38,6 +45,9 @@ export async function GET(): Promise<NextResponse> {
     code_challenge_method: "S256",
     state,
     nonce,
+    // `prompt=login` hace que Auth0 ignore la sesión SSO y pida
+    // credenciales: así se puede entrar con una cuenta distinta.
+    ...(cambiarDeCuenta ? { prompt: "login" } : {}),
   });
 
   return NextResponse.redirect(destino.href);

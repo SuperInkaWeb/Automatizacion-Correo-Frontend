@@ -44,12 +44,21 @@ export default async function Inicio({
         </p>
       )}
 
-      <a
-        href="/api/auth/login"
-        className="inline-flex items-center justify-center rounded-md bg-[var(--color-acento)] px-4 py-2.5 font-medium text-white hover:opacity-90"
-      >
-        Iniciar sesión
-      </a>
+      <div className="flex flex-col items-center gap-2">
+        <a
+          href="/api/auth/login"
+          className="inline-flex w-full items-center justify-center rounded-md bg-[var(--color-acento)] px-4 py-2.5 font-medium text-white hover:opacity-90"
+        >
+          Iniciar sesión
+        </a>
+        {/* Fuerza el formulario de Auth0 aunque haya sesión SSO activa. */}
+        <a
+          href="/api/auth/login?cambiar=1"
+          className="text-xs text-[var(--color-texto-tenue)] underline hover:opacity-90"
+        >
+          Entrar con otra cuenta
+        </a>
+      </div>
 
       <p className="text-xs text-[var(--color-texto-tenue)]">
         Se solicita permiso de solo lectura sobre tu buzón. La aplicación
