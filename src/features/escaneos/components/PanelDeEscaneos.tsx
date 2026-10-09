@@ -9,14 +9,14 @@
  */
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   useEscaneosCancelar,
   useEscaneosIniciar,
   useEscaneosListar,
 } from "@/generated/api/escaneos/escaneos";
 import { useBuzonesListar } from "@/generated/api/buzones/buzones";
-import type { EscaneoSalida } from "@/generated/model";
+import type { BuzonSalida, EscaneoSalida } from "@/generated/model";
 import {
   Boton,
   Cargando,
@@ -73,7 +73,6 @@ export function PanelDeEscaneos() {
 
   const buzones = useBuzonesListar();
   const escaneos = useEscaneosListar({ limite: 20 });
-  const iniciar = useEscaneosIniciar();
   const cancelar = useEscaneosCancelar();
 
   const { progreso, conexion } = useProgresoDeEscaneo(enCurso, {
@@ -82,20 +81,6 @@ export function PanelDeEscaneos() {
 
   const conexionesActivas =
     buzones.data?.data.filter((b) => b.estado === "active") ?? [];
-
-  const lanzar = () => {
-    const conexion = conexionesActivas[0];
-    if (!conexion) return;
-    iniciar.mutate(
-      { data: { conexion_id: conexion.id, limite_de_mensajes: 200 } },
-      {
-        onSuccess: (respuesta) => {
-          setEnCurso(respuesta.data.id);
-          void escaneos.refetch();
-        },
-      },
-    );
-  };
 
   if (buzones.isLoading) return <Cargando filas={4} />;
 
@@ -110,25 +95,7 @@ export function PanelDeEscaneos() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Tarjeta
-        titulo="Nuevo escaneo"
-        descripcion={
-          conexionesActivas.length > 0
-            ? `Se revisarán los últimos correos de ${conexionesActivas[0]?.correo_de_la_cuenta}.`
-            : undefined
-        }
-        acciones={
-          conexionesActivas.length > 0 && (
-            <Boton
-              onClick={lanzar}
-              cargando={iniciar.isPending}
-              disabled={Boolean(enCurso) && conexion !== "terminado"}
-            >
-              Iniciar escaneo
-            </Boton>
-          )
-        }
-      >
+      <Tarjeta titulo="Nuevo escaneo">
         {conexionesActivas.length === 0 ? (
           <SinDatos
             titulo="No hay ningún buzón conectado"
@@ -146,12 +113,18 @@ export function PanelDeEscaneos() {
             }
           />
         ) : (
-          <ProgresoEnVivo progreso={progreso} conexion={conexion} />
-        )}
-
-        {iniciar.isError && (
-          <div className="mt-4">
-            <Fallo mensaje={mensajeDeError(iniciar.error)} />
+          <div className="flex flex-col gap-6">
+            <FormularioDeEscaneo
+              conexionesActivas={conexionesActivas}
+              deshabilitado={Boolean(enCurso) && conexion !== "terminado"}
+              onLanzado={(trabajoId) => {
+                setEnCurso(trabajoId);
+                void escaneos.refetch();
+              }}
+            />
+            {enCurso && (
+              <ProgresoEnVivo progreso={progreso} conexion={conexion} />
+            )}
           </div>
         )}
       </Tarjeta>
@@ -188,6 +161,151 @@ export function PanelDeEscaneos() {
         )}
       </Tarjeta>
     </div>
+  );
+}
+
+function FormularioDeEscaneo({
+  conexionesActivas,
+  onLanzado,
+  deshabilitado,
+}: {
+  conexionesActivas: BuzonSalida[];
+  onLanzado: (trabajoId: string) => void;
+  deshabilitado: boolean;
+}) {
+  const iniciar = useEscaneosIniciar();
+  const [buzonId, setBuzonId] = useState("");
+  const [desde, setDesde] = useState("");
+  const [hasta, setHasta] = useState("");
+  const [carpeta, setCarpeta] = useState("INBOX");
+  const [limite, setLimite] = useState("100");
+
+  // El primer buzón activo es el valor por defecto sin necesidad de un
+  // efecto: se resuelve en el render y se respeta la elección del usuario.
+  const buzonSeleccionado = buzonId || conexionesActivas[0]?.id || "";
+
+  const enviar = () => {
+    iniciar.mutate(
+      {
+        data: {
+          conexion_id: buzonSeleccionado,
+          limite_de_mensajes: Number(limite) || 100,
+          carpeta: carpeta.trim() || "INBOX",
+          // Solo se envían las fechas si el usuario las fijó: un rango
+          // vacío significa "sin acotar", no una fecha nula.
+          ...(desde ? { desde } : {}),
+          ...(hasta ? { hasta } : {}),
+        },
+      },
+      { onSuccess: (respuesta) => onLanzado(respuesta.data.id) },
+    );
+  };
+
+  const etiquetaDeBuzon = (buzon: BuzonSalida) =>
+    buzon.correo_de_la_cuenta ||
+    (buzon.proveedor === "google" ? "Gmail" : "Outlook");
+
+  return (
+    <form
+      onSubmit={(evento) => {
+        evento.preventDefault();
+        enviar();
+      }}
+      className="flex flex-col gap-4"
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        {conexionesActivas.length > 1 ? (
+          <Campo etiqueta="Buzón">
+            <select
+              value={buzonSeleccionado}
+              onChange={(evento) => setBuzonId(evento.target.value)}
+              className="rounded-md border border-[var(--color-borde)] bg-[var(--color-fondo)] px-3 py-2"
+            >
+              {conexionesActivas.map((buzon) => (
+                <option key={buzon.id} value={buzon.id}>
+                  {etiquetaDeBuzon(buzon)}
+                </option>
+              ))}
+            </select>
+          </Campo>
+        ) : (
+          <Campo etiqueta="Buzón">
+            <p className="px-1 py-2 text-[var(--color-texto-tenue)]">
+              {conexionesActivas[0]
+                ? etiquetaDeBuzon(conexionesActivas[0])
+                : "—"}
+            </p>
+          </Campo>
+        )}
+
+        <Campo etiqueta="Carpeta">
+          <input
+            value={carpeta}
+            onChange={(evento) => setCarpeta(evento.target.value)}
+            maxLength={120}
+            className="rounded-md border border-[var(--color-borde)] bg-[var(--color-fondo)] px-3 py-2"
+          />
+        </Campo>
+
+        <Campo etiqueta="Desde (opcional)">
+          <input
+            type="date"
+            value={desde}
+            max={hasta || undefined}
+            onChange={(evento) => setDesde(evento.target.value)}
+            className="rounded-md border border-[var(--color-borde)] bg-[var(--color-fondo)] px-3 py-2"
+          />
+        </Campo>
+
+        <Campo etiqueta="Hasta (opcional)">
+          <input
+            type="date"
+            value={hasta}
+            min={desde || undefined}
+            onChange={(evento) => setHasta(evento.target.value)}
+            className="rounded-md border border-[var(--color-borde)] bg-[var(--color-fondo)] px-3 py-2"
+          />
+        </Campo>
+
+        <Campo etiqueta="Máx. de correos">
+          <input
+            type="number"
+            min={1}
+            max={50000}
+            value={limite}
+            onChange={(evento) => setLimite(evento.target.value)}
+            className="rounded-md border border-[var(--color-borde)] bg-[var(--color-fondo)] px-3 py-2"
+          />
+        </Campo>
+      </div>
+
+      {iniciar.isError && <Fallo mensaje={mensajeDeError(iniciar.error)} />}
+
+      <div>
+        <Boton
+          type="submit"
+          cargando={iniciar.isPending}
+          disabled={deshabilitado || !buzonSeleccionado}
+        >
+          Iniciar escaneo
+        </Boton>
+      </div>
+    </form>
+  );
+}
+
+function Campo({
+  etiqueta,
+  children,
+}: {
+  etiqueta: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-sm">
+      <span className="text-[var(--color-texto-tenue)]">{etiqueta}</span>
+      {children}
+    </label>
   );
 }
 
