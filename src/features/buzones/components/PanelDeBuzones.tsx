@@ -78,6 +78,13 @@ export function PanelDeBuzones() {
 
   const conexiones = buzones.data?.data ?? [];
 
+  // Qué proveedor tiene la autorización en curso. Mientras la mutación
+  // está pendiente, `variables` guarda los datos de la llamada en vuelo:
+  // así solo el botón pulsado muestra «cargando» y no ambos.
+  const proveedorEnCurso = autorizar.isPending
+    ? autorizar.variables?.data.proveedor
+    : undefined;
+
   return (
     <div className="flex flex-col gap-6">
       <Tarjeta
@@ -89,7 +96,8 @@ export function PanelDeBuzones() {
             <Boton
               key={valor}
               variante="secundario"
-              cargando={autorizar.isPending}
+              cargando={proveedorEnCurso === valor}
+              disabled={autorizar.isPending && proveedorEnCurso !== valor}
               onClick={() => conectar(valor)}
             >
               Conectar {etiqueta}
