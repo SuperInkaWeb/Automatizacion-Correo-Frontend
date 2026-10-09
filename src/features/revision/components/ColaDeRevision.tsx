@@ -35,12 +35,17 @@ import {
 const CAMPOS = [
   { clave: "ruc_contribuyente", etiqueta: "RUC del arrendador" },
   { clave: "nombre_contribuyente", etiqueta: "Nombre / Razón social" },
+  { clave: "tipo_doc_inquilino", etiqueta: "Tipo doc. inquilino" },
   { clave: "ruc_inquilino", etiqueta: "RUC del arrendatario" },
   { clave: "nombre_inquilino", etiqueta: "Inquilino" },
+  { clave: "tipo_de_bien", etiqueta: "Tipo de bien" },
   { clave: "periodo", etiqueta: "Periodo (AAAAMM)" },
   { clave: "fecha_de_pago", etiqueta: "Fecha de pago (DD/MM/AAAA)" },
   { clave: "numero_de_operacion", etiqueta: "N.º de operación" },
-  { clave: "importe", etiqueta: "Importe" },
+  { clave: "monto_alquiler", etiqueta: "Monto de alquiler" },
+  { clave: "tributo_resultante", etiqueta: "Tributo resultante" },
+  { clave: "importe_pagado", etiqueta: "Importe pagado" },
+  { clave: "intereses_moratorios", etiqueta: "Intereses moratorios" },
 ] as const;
 
 export function ColaDeRevision() {

@@ -28,7 +28,7 @@ const CABECERAS = [
   "Nombre",
   "Periodo",
   "Fecha",
-  "Importe",
+  "Importe pagado",
   "Estado",
   "Revisión",
   "Origen",
@@ -185,8 +185,8 @@ function FilaDeRegistro({ registro }: { registro: RegistroSalida }) {
         {registro.fecha_de_pago ?? "—"}
       </Celda>
       <Celda className="tabular-nums">
-        {registro.importe
-          ? `${registro.moneda === "USD" ? "US$" : "S/"} ${registro.importe}`
+        {registro.importe_pagado
+          ? `${registro.moneda === "USD" ? "US$" : "S/"} ${registro.importe_pagado}`
           : "—"}
       </Celda>
       <Celda>

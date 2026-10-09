@@ -21,8 +21,10 @@ export interface RegistroSalida {
   estrategia_usada: string | null;
   fecha_de_pago: string | null;
   id: string;
-  importe: string | null;
+  importe_pagado: string | null;
+  intereses_moratorios: string | null;
   moneda: string | null;
+  monto_alquiler: string | null;
   nombre_contribuyente: string;
   nombre_inquilino: string;
   numero_de_operacion: string | null;
@@ -30,5 +32,8 @@ export interface RegistroSalida {
   periodo: string | null;
   ruc_contribuyente: string | null;
   ruc_inquilino: string | null;
+  tipo_de_bien: string;
+  tipo_doc_inquilino: string;
   trabajo_id: string;
+  tributo_resultante: string | null;
 }
