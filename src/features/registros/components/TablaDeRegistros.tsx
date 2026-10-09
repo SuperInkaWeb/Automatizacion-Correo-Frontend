@@ -30,6 +30,7 @@ const CABECERAS = [
   "Importe",
   "Estado",
   "Revisión",
+  "Origen",
 ] as const;
 
 const TONO_POR_COMPLETITUD = {
@@ -194,6 +195,22 @@ function FilaDeRegistro({ registro }: { registro: RegistroSalida }) {
       <Celda className="text-[var(--color-texto-tenue)]">
         {TEXTO_POR_REVISION[registro.estado_de_revision] ??
           registro.estado_de_revision}
+      </Celda>
+      <Celda>
+        {registro.adjunto_nombre || registro.correo_remitente ? (
+          <div className="flex max-w-[16rem] flex-col">
+            <span className="truncate" title={registro.correo_asunto ?? undefined}>
+              {registro.adjunto_nombre ?? "—"}
+            </span>
+            {registro.correo_remitente && (
+              <span className="truncate text-xs text-[var(--color-texto-tenue)]">
+                {registro.correo_remitente}
+              </span>
+            )}
+          </div>
+        ) : (
+          "—"
+        )}
       </Celda>
     </tr>
   );

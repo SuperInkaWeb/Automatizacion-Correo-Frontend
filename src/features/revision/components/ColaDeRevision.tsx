@@ -134,7 +134,13 @@ function FichaDeRevision({
 
   return (
     <Tarjeta
-      titulo={registro.ruc_contribuyente ?? "Sin RUC legible"}
+      // El RUC es el mejor identificador; si no se pudo leer, el nombre
+      // del archivo dice más que un genérico "sin RUC".
+      titulo={
+        registro.ruc_contribuyente ??
+        registro.adjunto_nombre ??
+        "Documento sin identificar"
+      }
       descripcion={`Leído por ${registro.estrategia_usada ?? "—"} · ${registro.completitud}`}
       acciones={
         <Etiqueta tono={dudosos.size > 0 ? "aviso" : "info"}>
@@ -151,6 +157,8 @@ function FichaDeRevision({
         }}
         className="flex flex-col gap-4"
       >
+        <OrigenDelCorreo registro={registro} />
+
         <div className="grid gap-4 sm:grid-cols-2">
           {CAMPOS.map(({ clave, etiqueta }) => {
             const dudoso = dudosos.has(clave);
@@ -211,6 +219,50 @@ function FichaDeRevision({
         </div>
       </form>
     </Tarjeta>
+  );
+}
+
+/**
+ * Procedencia del registro: de qué correo y archivo salió. Es lo que
+ * permite a quien revisa saber qué documento está mirando antes de
+ * corregir un campo a ciegas.
+ */
+function OrigenDelCorreo({ registro }: { registro: RegistroSalida }) {
+  const tieneOrigen =
+    registro.correo_remitente ||
+    registro.correo_asunto ||
+    registro.adjunto_nombre;
+  if (!tieneOrigen) return null;
+
+  const recibido = registro.correo_recibido_en
+    ? new Date(registro.correo_recibido_en).toLocaleString("es-PE")
+    : null;
+
+  return (
+    <dl className="grid gap-x-6 gap-y-1 rounded-md border border-[var(--color-borde)] bg-[var(--color-fondo)] p-3 text-sm sm:grid-cols-2">
+      <DatoDeOrigen etiqueta="De" valor={registro.correo_remitente} />
+      <DatoDeOrigen etiqueta="Asunto" valor={registro.correo_asunto} />
+      <DatoDeOrigen etiqueta="Archivo" valor={registro.adjunto_nombre} />
+      <DatoDeOrigen etiqueta="Recibido" valor={recibido} />
+    </dl>
+  );
+}
+
+function DatoDeOrigen({
+  etiqueta,
+  valor,
+}: {
+  etiqueta: string;
+  valor: string | null | undefined;
+}) {
+  if (!valor) return null;
+  return (
+    <div className="flex gap-2">
+      <dt className="shrink-0 text-[var(--color-texto-tenue)]">{etiqueta}:</dt>
+      <dd className="truncate" title={valor}>
+        {valor}
+      </dd>
+    </div>
   );
 }
 

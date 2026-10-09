@@ -9,9 +9,13 @@ import type { RegistroSalidaConfianzaPorCampo } from './registroSalidaConfianzaP
 
 export interface RegistroSalida {
   adjunto_id: string;
+  adjunto_nombre?: string | null;
   campos_dudosos: string[];
   completitud: string;
   confianza_por_campo: RegistroSalidaConfianzaPorCampo;
+  correo_asunto?: string | null;
+  correo_recibido_en?: string | null;
+  correo_remitente?: string | null;
   creado_en: string;
   estado_de_revision: string;
   estrategia_usada: string | null;
