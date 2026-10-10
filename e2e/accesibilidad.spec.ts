@@ -13,7 +13,7 @@
 import { expect, test } from "@playwright/test";
 import { iniciarSesion, simularApi } from "./apoyo";
 
-const PAGINAS = ["/escaneos", "/revision", "/registros", "/reportes", "/buzones"] as const;
+const PAGINAS = ["/buzones", "/escaneos", "/revision", "/registros"] as const;
 
 test.beforeEach(async ({ context, page }) => {
   await iniciarSesion(context);

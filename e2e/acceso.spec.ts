@@ -10,7 +10,7 @@
 import { expect, test } from "@playwright/test";
 import { iniciarSesion, simularApi } from "./apoyo";
 
-const SECCIONES = ["/escaneos", "/revision", "/registros", "/reportes", "/buzones"] as const;
+const SECCIONES = ["/buzones", "/escaneos", "/revision", "/registros"] as const;
 
 test.describe("sin sesión", () => {
   test("la entrada ofrece iniciar sesión y no filtra datos", async ({ page }) => {
@@ -61,7 +61,7 @@ test.describe("con sesión", () => {
     const navegacion = page.getByRole("navigation", { name: "Secciones" });
     await expect(navegacion).toBeVisible();
 
-    for (const etiqueta of ["Escaneos", "Revisión", "Registros", "Reportes", "Buzones"]) {
+    for (const etiqueta of ["Buzones", "Escaneos", "Revisión", "Registros"]) {
       await expect(navegacion.getByRole("link", { name: new RegExp(etiqueta) })).toBeVisible();
     }
   });

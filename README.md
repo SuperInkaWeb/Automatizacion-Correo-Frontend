@@ -2,7 +2,7 @@
 
 Interfaz de operación de la [plataforma de automatización de correos](https://github.com/SuperInkaWeb/Automatizacion-Correo-Backend):
 vincular buzones, lanzar escaneos, seguir su progreso en vivo, revisar
-registros y descargar reportes.
+registros y exportarlos a Excel o CSV.
 
 **Next.js 16** (App Router) · **React 19** · **TypeScript strict** · **Tailwind CSS 4** ·
 **TanStack Query** · cliente de API generado desde el contrato del backend.
@@ -22,7 +22,7 @@ Implementadas las **fases 0 y 6**, y los tests E2E de la **fase 7**, del
 | Cabeceras de seguridad, tokens de diseño, accesibilidad base | ✅ |
 | CI: linting, tipado, tests, build, auditoría y sincronía de contrato | ✅ |
 | Rutas del BFF (login OIDC, sesión, proxy) | ✅ |
-| Features: buzones, escaneos, registros, revisión, reportes | ✅ |
+| Features: buzones, escaneos, registros, revisión | ✅ |
 | E2E en navegador real con Playwright | ✅ |
 
 **Verificación actual:** 21 tests de unidad y 43 E2E en verde, `eslint` y `tsc --noEmit`
@@ -151,8 +151,8 @@ src/
 ├── features/      Feature-sliced: cada carpeta es autocontenida
 │   ├── escaneos/   lanzar, seguir en vivo (SSE), historial
 │   ├── revision/   cola de revisión y corrección
-│   ├── registros/  listado con filtros y cursor
-│   ├── reportes/   exportación asíncrona
+│   ├── registros/  listado con filtros, cursor y exportación
+│   ├── reportes/   hook de exportación asíncrona (lo usa registros)
 │   └── buzones/    vincular y desvincular cuentas
 ├── shared/
 │   ├── config/    configuración de entorno validada

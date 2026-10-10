@@ -22,12 +22,15 @@ import { useRegistrosPendientesDeRevision } from "@/generated/api/registros/regi
 // Tipadas como `Route`: con `typedRoutes`, Next comprueba en
 // compilacion que cada enlace apunta a una ruta que existe. Un typo
 // deja de ser un 404 en produccion y pasa a ser un error de build.
+// Ordenadas por el flujo de uso real: primero se vincula un buzon,
+// luego se escanea, se revisa lo dudoso y al final se consultan y
+// exportan los registros. La exportacion vive dentro de Registros
+// (se exporta lo que se ve y se filtra), asi que no hay seccion aparte.
 const SECCIONES: readonly { ruta: Route; etiqueta: string }[] = [
+  { ruta: "/buzones", etiqueta: "Buzones" },
   { ruta: "/escaneos", etiqueta: "Escaneos" },
   { ruta: "/revision", etiqueta: "Revisión" },
   { ruta: "/registros", etiqueta: "Registros" },
-  { ruta: "/reportes", etiqueta: "Reportes" },
-  { ruta: "/buzones", etiqueta: "Buzones" },
 ];
 
 export function Navegacion() {

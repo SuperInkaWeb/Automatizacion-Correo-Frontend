@@ -1,5 +1,5 @@
 /**
- * Registros, cola de revisión y reportes.
+ * Registros, cola de revisión y exportación.
  *
  * Son las pantallas donde el usuario trabaja con los datos extraídos.
  * Lo que se verifica aquí es lo que un test de componente no alcanza: la
@@ -198,8 +198,8 @@ test.describe("cola de revisión", () => {
   });
 });
 
-test.describe("reportes", () => {
-  test("solicitar una exportación y esperar el enlace", async ({ page }) => {
+test.describe("exportación de registros", () => {
+  test("exportar todo lo filtrado y esperar el enlace", async ({ page }) => {
     const exportacionId = "77777777-7777-4777-8777-777777777777";
     let consultas = 0;
 
@@ -230,15 +230,15 @@ test.describe("reportes", () => {
       });
     });
 
-    await page.goto("/reportes");
-    await page.getByRole("button", { name: "Generar" }).click();
+    await page.goto("/registros");
+    await page.getByRole("button", { name: "Exportar todo lo filtrado" }).click();
 
     // El enlace solo debe aparecer cuando el reporte está listo: ofrecerlo
     // antes da una descarga que falla.
     await expect(page.getByRole("link", { name: /descargar/i })).toBeVisible({ timeout: 15_000 });
   });
 
-  test("el formulario de exportación acepta filtros opcionales", async ({ page }) => {
+  test("los filtros aplicados viajan en la exportación", async ({ page }) => {
     let cuerpo: unknown = null;
     await simularApi(page);
     await page.route("**/api/bff/reports/exports", async (ruta) => {
@@ -254,7 +254,7 @@ test.describe("reportes", () => {
           respuesta({
             id: "88888888-8888-4888-8888-888888888888",
             estado: "queued",
-            formato: "csv",
+            formato: "xlsx",
             total_filas: 0,
             url_de_descarga: null,
           }),
@@ -262,9 +262,11 @@ test.describe("reportes", () => {
       });
     });
 
-    await page.goto("/reportes");
-    await page.getByLabel("RUC (opcional)").fill("20123456789");
-    await page.getByRole("button", { name: "Generar" }).click();
+    await page.goto("/registros");
+    // Filtrar primero y exportar después: lo exportado es lo filtrado.
+    await page.getByLabel("RUC arrendador").fill("20123456789");
+    await page.getByRole("button", { name: "Aplicar filtros" }).click();
+    await page.getByRole("button", { name: "Exportar todo lo filtrado" }).click();
 
     await expect.poll(() => cuerpo).not.toBeNull();
     expect(JSON.stringify(cuerpo)).toContain("20123456789");
