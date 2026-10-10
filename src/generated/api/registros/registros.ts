@@ -167,7 +167,85 @@ export function useRegistrosListarRegistros<TData = Awaited<ReturnType<typeof re
 
 
 
-export const getRegistrosObtenerRegistroUrl = (registroId: string,) => {
+export const getRegistrosEliminarRegistroUrl = (registroId: string,) => {
+
+
+
+
+  return `/api/v1/records/${registroId}`
+}
+
+/**
+ * Borra un registro extraido.
+ *
+ * Es irreversible, por eso la interfaz pide confirmacion antes de
+ * llamar. Devuelve 204 sin cuerpo: no hay nada que mostrar de algo
+ * que ya no existe.
+ * @summary Eliminar Registro
+ */
+export const registrosEliminarRegistro = async (registroId: string, options?: Parameters<typeof peticionAlBff>[1]): Promise<void> => {
+
+  return peticionAlBff<void>(getRegistrosEliminarRegistroUrl(registroId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRegistrosEliminarRegistroMutationKey = () => ['registrosEliminarRegistro'] as const;
+
+export const getRegistrosEliminarRegistroMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registrosEliminarRegistro>>, TError,RegistrosEliminarRegistroMutationVariables, TContext>, request?: SecondParameter<typeof peticionAlBff>}
+): UseMutationOptions<Awaited<ReturnType<typeof registrosEliminarRegistro>>, TError,RegistrosEliminarRegistroMutationVariables, TContext> => {
+
+const mutationKey = getRegistrosEliminarRegistroMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registrosEliminarRegistro>>, RegistrosEliminarRegistroMutationVariables> = (props) => {
+          const {registroId} = props ?? {};
+
+          return  registrosEliminarRegistro(registroId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegistrosEliminarRegistroMutationResult = NonNullable<Awaited<ReturnType<typeof registrosEliminarRegistro>>>
+
+    export type RegistrosEliminarRegistroMutationError = HTTPValidationError
+    export type RegistrosEliminarRegistroMutationVariables = {registroId: string}
+
+    /**
+ * @summary Eliminar Registro
+ */
+export const useRegistrosEliminarRegistro = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registrosEliminarRegistro>>, TError,RegistrosEliminarRegistroMutationVariables, TContext>, request?: SecondParameter<typeof peticionAlBff>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof registrosEliminarRegistro>>,
+        TError,
+        RegistrosEliminarRegistroMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegistrosEliminarRegistroMutationOptions(options), queryClient);
+    }
+    export const getRegistrosObtenerRegistroUrl = (registroId: string,) => {
 
 
 

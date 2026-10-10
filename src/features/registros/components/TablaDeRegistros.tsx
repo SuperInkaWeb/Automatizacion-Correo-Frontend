@@ -14,10 +14,14 @@
  */
 
 import { useState, type ReactNode } from "react";
-import { useRegistrosListarRegistros } from "@/generated/api/registros/registros";
+import {
+  useRegistrosEliminarRegistro,
+  useRegistrosListarRegistros,
+} from "@/generated/api/registros/registros";
 import type { RegistroSalida } from "@/generated/model";
 import { useAbrirDocumento } from "../hooks/useAbrirDocumento";
 import { useExportacion } from "@/features/reportes/hooks/useExportacion";
+import { FormularioDeCorreccion } from "./FormularioDeCorreccion";
 import {
   Boton,
   Cargando,
@@ -41,11 +45,33 @@ const TEXTO_POR_COMPLETITUD: Record<string, string> = {
   empty: "Vacío",
 };
 
+// Descripción al pasar el cursor: el estado por sí solo no dice qué
+// significa, y "Vacío" o "Parcial" confunden sin contexto.
+const AYUDA_POR_COMPLETITUD: Record<string, string> = {
+  complete: "Se leyeron todos los datos clave con confianza",
+  partial: "Falta algún dato clave o se leyó con poca confianza",
+  empty: "No se reconoció como constancia de pago",
+};
+
+const TONO_POR_REVISION = {
+  not_required: "neutro",
+  pending: "aviso",
+  approved: "exito",
+  rejected: "error",
+} as const;
+
 const TEXTO_POR_REVISION: Record<string, string> = {
-  not_required: "—",
+  not_required: "No requiere",
   pending: "Pendiente",
   approved: "Aprobado",
   rejected: "Rechazado",
+};
+
+const AYUDA_POR_REVISION: Record<string, string> = {
+  not_required: "El sistema lo dio por bueno; nadie tiene que revisarlo",
+  pending: "Necesita que una persona lo revise y confirme",
+  approved: "Una persona lo revisó y lo aprobó",
+  rejected: "Marcado como no válido (documento ilegible o ajeno)",
 };
 
 const TEXTO_POR_ESTADO_EXPORT: Record<string, string> = {
@@ -263,6 +289,7 @@ export function TablaDeRegistros() {
                 "Estado",
                 "Revisión",
                 "Origen",
+                "Acciones",
               ]}
               descripcion="Registros tributarios extraídos"
             >
@@ -272,6 +299,15 @@ export function TablaDeRegistros() {
                   registro={registro}
                   seleccionado={seleccion.has(registro.id)}
                   onAlternar={() => alternar(registro.id)}
+                  onEditado={() => void registros.refetch()}
+                  onEliminado={() => {
+                    setSeleccion((previa) => {
+                      const copia = new Set(previa);
+                      copia.delete(registro.id);
+                      return copia;
+                    });
+                    void registros.refetch();
+                  }}
                 />
               ))}
             </Tabla>
@@ -353,75 +389,146 @@ function FilaDeRegistro({
   registro,
   seleccionado,
   onAlternar,
+  onEditado,
+  onEliminado,
 }: {
   registro: RegistroSalida;
   seleccionado: boolean;
   onAlternar: () => void;
+  onEditado: () => void;
+  onEliminado: () => void;
 }) {
   const tono =
     TONO_POR_COMPLETITUD[
       registro.completitud as keyof typeof TONO_POR_COMPLETITUD
     ];
+  const tonoRevision =
+    TONO_POR_REVISION[
+      registro.estado_de_revision as keyof typeof TONO_POR_REVISION
+    ];
   const documento = useAbrirDocumento();
+  const eliminar = useRegistrosEliminarRegistro();
+
+  const [editando, setEditando] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+
+  const borrar = () =>
+    eliminar.mutate({ registroId: registro.id }, { onSuccess: onEliminado });
 
   return (
-    <tr className="border-b border-[var(--color-borde)] last:border-0">
-      <Celda>
-        <input
-          type="checkbox"
-          aria-label="Seleccionar este registro"
-          checked={seleccionado}
-          onChange={onAlternar}
-          className="size-4"
-        />
-      </Celda>
-      <Celda className="font-mono text-xs">
-        {registro.ruc_contribuyente ?? "—"}
-      </Celda>
-      <Celda>{registro.nombre_contribuyente || "—"}</Celda>
-      <Celda className="tabular-nums">{registro.periodo ?? "—"}</Celda>
-      <Celda className="whitespace-nowrap">
-        {registro.fecha_de_pago ?? "—"}
-      </Celda>
-      <Celda className="tabular-nums">
-        {registro.importe_pagado
-          ? `${registro.moneda === "USD" ? "US$" : "S/"} ${registro.importe_pagado}`
-          : "—"}
-      </Celda>
-      <Celda>
-        <Etiqueta tono={tono ?? "neutro"}>
-          {TEXTO_POR_COMPLETITUD[registro.completitud] ?? registro.completitud}
-        </Etiqueta>
-      </Celda>
-      <Celda className="text-[var(--color-texto-tenue)]">
-        {TEXTO_POR_REVISION[registro.estado_de_revision] ??
-          registro.estado_de_revision}
-      </Celda>
-      <Celda>
-        {registro.adjunto_nombre || registro.correo_remitente ? (
-          <div className="flex max-w-[16rem] flex-col">
-            <button
-              type="button"
-              onClick={() => void documento.abrir(registro.id)}
-              disabled={documento.cargando}
-              title={registro.correo_asunto ?? "Ver documento"}
-              className="truncate text-left text-[var(--color-acento)] underline-offset-2 hover:underline disabled:opacity-60"
-            >
-              {documento.error
-                ? "Reintentar"
-                : (registro.adjunto_nombre ?? "Ver documento")}
-            </button>
-            {registro.correo_remitente && (
-              <span className="truncate text-xs text-[var(--color-texto-tenue)]">
-                {registro.correo_remitente}
+    <>
+      <tr className="border-b border-[var(--color-borde)] last:border-0">
+        <Celda>
+          <input
+            type="checkbox"
+            aria-label="Seleccionar este registro"
+            checked={seleccionado}
+            onChange={onAlternar}
+            className="size-4"
+          />
+        </Celda>
+        <Celda className="font-mono text-xs">
+          {registro.ruc_contribuyente ?? "—"}
+        </Celda>
+        <Celda>{registro.nombre_contribuyente || "—"}</Celda>
+        <Celda className="tabular-nums">{registro.periodo ?? "—"}</Celda>
+        <Celda className="whitespace-nowrap">
+          {registro.fecha_de_pago ?? "—"}
+        </Celda>
+        <Celda className="tabular-nums">
+          {registro.importe_pagado
+            ? `${registro.moneda === "USD" ? "US$" : "S/"} ${registro.importe_pagado}`
+            : "—"}
+        </Celda>
+        <Celda>
+          <span title={AYUDA_POR_COMPLETITUD[registro.completitud]}>
+            <Etiqueta tono={tono ?? "neutro"}>
+              {TEXTO_POR_COMPLETITUD[registro.completitud] ??
+                registro.completitud}
+            </Etiqueta>
+          </span>
+        </Celda>
+        <Celda>
+          <span title={AYUDA_POR_REVISION[registro.estado_de_revision]}>
+            <Etiqueta tono={tonoRevision ?? "neutro"}>
+              {TEXTO_POR_REVISION[registro.estado_de_revision] ??
+                registro.estado_de_revision}
+            </Etiqueta>
+          </span>
+        </Celda>
+        <Celda>
+          {registro.adjunto_nombre || registro.correo_remitente ? (
+            <div className="flex max-w-[16rem] flex-col">
+              <button
+                type="button"
+                onClick={() => void documento.abrir(registro.id)}
+                disabled={documento.cargando}
+                title={registro.correo_asunto ?? "Ver documento"}
+                className="truncate text-left text-[var(--color-acento)] underline-offset-2 hover:underline disabled:opacity-60"
+              >
+                {documento.error
+                  ? "Reintentar"
+                  : (registro.adjunto_nombre ?? "Ver documento")}
+              </button>
+              {registro.correo_remitente && (
+                <span className="truncate text-xs text-[var(--color-texto-tenue)]">
+                  {registro.correo_remitente}
+                </span>
+              )}
+            </div>
+          ) : (
+            "—"
+          )}
+        </Celda>
+        <Celda>
+          {confirmando ? (
+            // Confirmación en la propia fila: borrar es irreversible, así
+            // que no se dispara con un solo clic ni con un diálogo nativo
+            // que el navegador puede bloquear.
+            <div className="flex items-center gap-1 whitespace-nowrap">
+              <span className="text-xs text-[var(--color-texto-tenue)]">
+                ¿Borrar?
               </span>
-            )}
-          </div>
-        ) : (
-          "—"
-        )}
-      </Celda>
-    </tr>
+              <Boton
+                variante="peligro"
+                cargando={eliminar.isPending}
+                onClick={borrar}
+              >
+                Sí
+              </Boton>
+              <Boton
+                variante="secundario"
+                onClick={() => setConfirmando(false)}
+              >
+                No
+              </Boton>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 whitespace-nowrap">
+              <Boton variante="secundario" onClick={() => setEditando((v) => !v)}>
+                {editando ? "Cerrar" : "Editar"}
+              </Boton>
+              <Boton variante="peligro" onClick={() => setConfirmando(true)}>
+                Eliminar
+              </Boton>
+            </div>
+          )}
+        </Celda>
+      </tr>
+      {editando && (
+        <tr className="border-b border-[var(--color-borde)]">
+          <td colSpan={10} className="bg-[var(--color-superficie)] p-4">
+            <FormularioDeCorreccion
+              registro={registro}
+              onResuelto={() => {
+                setEditando(false);
+                onEditado();
+              }}
+            />
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
