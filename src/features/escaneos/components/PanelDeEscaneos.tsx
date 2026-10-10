@@ -33,8 +33,10 @@ import { useProgresoDeEscaneo } from "../hooks/useProgresoDeEscaneo";
 const CABECERAS = [
   "Estado",
   "Fase",
-  "Revisados",
+  "Correos",
   "Adjuntos",
+  "Duplicados",
+  "Descartados",
   "Errores",
   "Encolado",
   "",
@@ -338,10 +340,11 @@ function ProgresoEnVivo({
         etiqueta="Progreso del escaneo"
       />
 
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-5">
         <Contador etiqueta="Correos" valor={progreso.contadores.mensajes_revisados} />
         <Contador etiqueta="Adjuntos" valor={progreso.contadores.adjuntos_descargados} />
         <Contador etiqueta="Duplicados" valor={progreso.contadores.adjuntos_duplicados} />
+        <Contador etiqueta="Descartados" valor={progreso.contadores.adjuntos_rechazados} />
         <Contador etiqueta="Errores" valor={progreso.contadores.errores} />
       </dl>
 
@@ -385,12 +388,18 @@ function FilaDeEscaneo({
       </Celda>
       <Celda>{TEXTO_POR_FASE[escaneo.fase] ?? escaneo.fase}</Celda>
       <Celda className="tabular-nums">
-        {escaneo.contadores.mensajes_revisados}
+        {escaneo.contadores.mensajes_revisados ?? 0}
       </Celda>
       <Celda className="tabular-nums">
-        {escaneo.contadores.adjuntos_descargados}
+        {escaneo.contadores.adjuntos_descargados ?? 0}
       </Celda>
-      <Celda className="tabular-nums">{escaneo.contadores.errores}</Celda>
+      <Celda className="tabular-nums">
+        {escaneo.contadores.adjuntos_duplicados ?? 0}
+      </Celda>
+      <Celda className="tabular-nums">
+        {escaneo.contadores.adjuntos_rechazados ?? 0}
+      </Celda>
+      <Celda className="tabular-nums">{escaneo.contadores.errores ?? 0}</Celda>
       <Celda className="whitespace-nowrap text-[var(--color-texto-tenue)]">
         {new Date(escaneo.encolado_en).toLocaleString("es-PE")}
       </Celda>
