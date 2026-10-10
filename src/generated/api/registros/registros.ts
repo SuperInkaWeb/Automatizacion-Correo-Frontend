@@ -75,7 +75,7 @@ export const getRegistrosListarRegistrosUrl = (params?: RegistrosListarRegistros
 }
 
 /**
- * Listado principal, paginado por cursor.
+ * Listado principal, paginado por cursor y con filtros combinables.
  * @summary Listar Registros
  */
 export const registrosListarRegistros = async (params?: RegistrosListarRegistrosParams, options?: Parameters<typeof peticionAlBff>[1]): Promise<RespuestaListRegistroSalida> => {

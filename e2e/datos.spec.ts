@@ -44,8 +44,8 @@ test.describe("registros", () => {
     });
 
     await page.goto("/registros");
-    await page.getByLabel("RUC").fill("20123456789");
-    await page.getByRole("button", { name: "Filtrar" }).click();
+    await page.getByLabel("RUC arrendador").fill("20123456789");
+    await page.getByRole("button", { name: "Aplicar filtros" }).click();
 
     await expect.poll(() => consultas.some((c) => c.includes("ruc=20123456789"))).toBe(true);
     // Conservar el cursor daría una página intermedia de otro listado.

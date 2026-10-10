@@ -7,8 +7,15 @@
  */
 
 export interface SolicitarExportacionEntrada {
+  fecha_desde?: string | null;
+  fecha_hasta?: string | null;
   /** @pattern ^(xlsx|csv)$ */
   formato?: string;
+  ids?: string[];
   periodo?: string | null;
+  periodo_desde?: string | null;
+  periodo_hasta?: string | null;
   ruc?: string | null;
+  ruc_inquilino?: string | null;
+  solo_aprobados?: boolean;
 }

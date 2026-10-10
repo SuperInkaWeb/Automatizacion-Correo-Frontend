@@ -226,7 +226,9 @@ export function Tabla({
   children,
   descripcion,
 }: {
-  cabeceras: readonly string[];
+  // ReactNode y no solo string: alguna cabecera es un control, como la
+  // casilla de "seleccionar todo" del listado de registros.
+  cabeceras: readonly ReactNode[];
   children: ReactNode;
   descripcion: string;
 }) {
@@ -238,9 +240,9 @@ export function Tabla({
         <caption className="sr-only">{descripcion}</caption>
         <thead>
           <tr className="border-b border-[var(--color-borde)] text-left">
-            {cabeceras.map((cabecera) => (
+            {cabeceras.map((cabecera, indice) => (
               <th
-                key={cabecera}
+                key={indice}
                 scope="col"
                 className="px-3 py-2 font-medium text-[var(--color-texto-tenue)]"
               >

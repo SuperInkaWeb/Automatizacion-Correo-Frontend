@@ -9,7 +9,13 @@
 export type RegistrosListarRegistrosParams = {
 trabajo_id?: string | null;
 ruc?: string | null;
+ruc_inquilino?: string | null;
 periodo?: string | null;
+periodo_desde?: string | null;
+periodo_hasta?: string | null;
+fecha_desde?: string | null;
+fecha_hasta?: string | null;
+solo_aprobados?: boolean;
 cursor?: string | null;
 /**
  * @minimum 1
