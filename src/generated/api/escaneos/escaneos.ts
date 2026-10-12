@@ -29,6 +29,7 @@ import type {
   EscaneosListarParams,
   HTTPValidationError,
   IniciarEscaneoEntrada,
+  RespuestaDictStrInt,
   RespuestaEscaneoSalida,
   RespuestaListErrorDeProcesamientoSalida,
   RespuestaListEscaneoSalida
@@ -250,6 +251,85 @@ export const useEscaneosIniciar = <TError = HTTPValidationError,
         TContext
       > => {
       return useMutation(getEscaneosIniciarMutationOptions(options), queryClient);
+    }
+    export const getEscaneosReiniciarDatosUrl = () => {
+
+
+
+
+  return `/api/v1/scans/data`
+}
+
+/**
+ * Borra TODOS los datos de escaneo del tenant para poder re-escanear.
+ *
+ * Elimina registros, adjuntos, correos, trabajos, errores y reportes,
+ * pero CONSERVA los buzones conectados: no es desvincular la cuenta.
+ * Es irreversible, por eso la interfaz pide una confirmacion explicita
+ * antes de llamar. Devuelve cuantas filas borro de cada tipo.
+ * @summary Reiniciar Datos
+ */
+export const escaneosReiniciarDatos = async ( options?: Parameters<typeof peticionAlBff>[1]): Promise<RespuestaDictStrInt> => {
+
+  return peticionAlBff<RespuestaDictStrInt>(getEscaneosReiniciarDatosUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getEscaneosReiniciarDatosMutationKey = () => ['escaneosReiniciarDatos'] as const;
+
+export const getEscaneosReiniciarDatosMutationOptions = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof escaneosReiniciarDatos>>, TError,void, TContext>, request?: SecondParameter<typeof peticionAlBff>}
+): UseMutationOptions<Awaited<ReturnType<typeof escaneosReiniciarDatos>>, TError,void, TContext> => {
+
+const mutationKey = getEscaneosReiniciarDatosMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof escaneosReiniciarDatos>>, void> = () => {
+
+
+          return  escaneosReiniciarDatos(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EscaneosReiniciarDatosMutationResult = NonNullable<Awaited<ReturnType<typeof escaneosReiniciarDatos>>>
+
+    export type EscaneosReiniciarDatosMutationError = HTTPValidationError
+
+
+    /**
+ * @summary Reiniciar Datos
+ */
+export const useEscaneosReiniciarDatos = <TError = HTTPValidationError,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof escaneosReiniciarDatos>>, TError,void, TContext>, request?: SecondParameter<typeof peticionAlBff>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof escaneosReiniciarDatos>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getEscaneosReiniciarDatosMutationOptions(options), queryClient);
     }
     export const getEscaneosObtenerUrl = (trabajoId: string,) => {
 

@@ -14,6 +14,7 @@ import {
   useEscaneosCancelar,
   useEscaneosIniciar,
   useEscaneosListar,
+  useEscaneosReiniciarDatos,
 } from "@/generated/api/escaneos/escaneos";
 import { useBuzonesListar } from "@/generated/api/buzones/buzones";
 import type { BuzonSalida, EscaneoSalida } from "@/generated/model";
@@ -162,7 +163,87 @@ export function PanelDeEscaneos() {
           </Tabla>
         )}
       </Tarjeta>
+
+      <ZonaDePeligro onReiniciado={() => void escaneos.refetch()} />
     </div>
+  );
+}
+
+/** Palabra que el usuario debe teclear para confirmar el reinicio. */
+const PALABRA_DE_CONFIRMACION = "REINICIAR";
+
+function ZonaDePeligro({ onReiniciado }: { onReiniciado: () => void }) {
+  const [abierto, setAbierto] = useState(false);
+  const [texto, setTexto] = useState("");
+  const reiniciar = useEscaneosReiniciarDatos();
+  const resumen = reiniciar.data?.data;
+
+  const confirmar = () =>
+    reiniciar.mutate(undefined, {
+      onSuccess: () => {
+        setAbierto(false);
+        setTexto("");
+        onReiniciado();
+      },
+    });
+
+  return (
+    <Tarjeta
+      titulo="Reiniciar datos de escaneo"
+      descripcion="Borra todos los registros, adjuntos, correos y reportes para poder escanear desde cero. Tus buzones conectados se conservan. Esta acción no se puede deshacer."
+    >
+      {resumen && !abierto && (
+        <p className="mb-4 rounded-md border border-[var(--color-borde)] p-3 text-sm" aria-live="polite">
+          Listo. Se borraron {resumen.registros ?? 0} registros, {resumen.adjuntos ?? 0} adjuntos
+          y {resumen.mensajes ?? 0} correos. Ya puedes lanzar un escaneo nuevo.
+        </p>
+      )}
+
+      {reiniciar.isError && (
+        <div className="mb-4">
+          <Fallo mensaje={mensajeDeError(reiniciar.error)} />
+        </div>
+      )}
+
+      {!abierto ? (
+        <Boton variante="peligro" onClick={() => setAbierto(true)}>
+          Reiniciar datos de escaneo
+        </Boton>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-[var(--color-texto-tenue)]">
+              Para confirmar, escribe <strong>{PALABRA_DE_CONFIRMACION}</strong>
+            </span>
+            <input
+              value={texto}
+              onChange={(evento) => setTexto(evento.target.value)}
+              autoComplete="off"
+              className="w-48 rounded-md border border-[var(--color-borde)] bg-[var(--color-fondo)] px-3 py-2"
+            />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <Boton
+              variante="peligro"
+              cargando={reiniciar.isPending}
+              disabled={texto !== PALABRA_DE_CONFIRMACION}
+              onClick={confirmar}
+            >
+              Sí, borrar todo
+            </Boton>
+            <Boton
+              variante="secundario"
+              onClick={() => {
+                setAbierto(false);
+                setTexto("");
+              }}
+            >
+              Cancelar
+            </Boton>
+          </div>
+        </div>
+      )}
+    </Tarjeta>
   );
 }
 
